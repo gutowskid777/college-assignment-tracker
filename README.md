@@ -1,10 +1,10 @@
-# Duebook
+# College Assignment Tracker
 
 A semester assignment tracker in a single HTML file. No account, no server, no build step, no dependencies. Open the file, add your classes, and every assignment for the semester lives in one place.
 
-I built this to replace the Excel assignment tracker I had been dragging through every semester of college. The spreadsheet worked, but hiding rows by hand every time I finished something got old. Duebook keeps the parts that worked (one master list, per-class progress, a month calendar) and automates the rest.
+I built this to replace the Excel assignment tracker I had been dragging through every semester of college. The spreadsheet worked, but hiding rows by hand every time I finished something got old. This keeps the parts that worked (one master list, per-class progress, a month calendar) and automates the rest.
 
-**[Try it live](https://gutowskid777.github.io/duebook/)** ... the demo is seeded with a sample semester. Your edits save in your own browser.
+**[Try it live](https://gutowskid777.github.io/college-assignment-tracker/)** ... the demo is seeded with a sample semester. Your edits save in your own browser.
 
 ![List view](screenshots/list-light.jpg)
 
@@ -38,7 +38,7 @@ Statuses, assignment types, and due-time suggestions are all editable in Setting
 Three options, pick one:
 
 1. **Just open it.** Download `index.html` and double-click it. That is the whole install.
-2. **Use the hosted demo.** [gutowskid777.github.io/duebook](https://gutowskid777.github.io/duebook/) works as a real tracker since data stays in your browser.
+2. **Use the hosted demo.** [gutowskid777.github.io/college-assignment-tracker](https://gutowskid777.github.io/college-assignment-tracker/) works as a real tracker since data stays in your browser.
 3. **Host it yourself.** It is one static file. Any static host or a `python3 -m http.server` works.
 
 ## Development
