@@ -4,7 +4,7 @@ A semester assignment tracker in a single HTML file. No account, no server, no b
 
 I built this to replace the Excel assignment tracker I had been dragging through every semester of college. The spreadsheet worked, but hiding rows by hand every time I finished something got old. This keeps the parts that worked (one master list, per-class progress, a month calendar) and automates the rest.
 
-**[Try it live](https://gutowskid777.github.io/college-assignment-tracker/)** ... the demo is seeded with a sample semester. Your edits save in your own browser.
+**[Try it live](https://college-assignment-tracker-six.vercel.app/)** ... the demo is seeded with a sample semester. Your edits save in your own browser.
 
 ![List view](screenshots/list-light.jpg)
 
@@ -29,7 +29,7 @@ Statuses, assignment types, and due-time suggestions are all editable in Setting
 
 ## Data
 
-- Everything saves to your browser's localStorage. Nothing leaves your machine.
+- Everything saves to your browser's localStorage. Nothing leaves your machine. The hosted demo counts anonymous page views (Vercel Web Analytics); downloaded and self-hosted copies contain no analytics at all.
 - Settings has one-click JSON export and import, so back up whenever you like and move between browsers freely.
 - Light and dark theme both supported, following your system setting.
 
@@ -38,7 +38,7 @@ Statuses, assignment types, and due-time suggestions are all editable in Setting
 Three options, pick one:
 
 1. **Just open it.** Download `index.html` and double-click it. That is the whole install.
-2. **Use the hosted demo.** [gutowskid777.github.io/college-assignment-tracker](https://gutowskid777.github.io/college-assignment-tracker/) works as a real tracker since data stays in your browser.
+2. **Use the hosted demo.** [college-assignment-tracker-six.vercel.app](https://college-assignment-tracker-six.vercel.app/) works as a real tracker since data stays in your browser.
 3. **Host it yourself.** It is one static file. Any static host or a `python3 -m http.server` works.
 4. **Sync it across devices with Claude.** If you use Claude, the tracker can run as a private artifact that saves its data into the page itself, so your phone and laptop see the same list with no server and no account beyond Claude. Download `index.html`, open a session at claude.ai/code, and say:
 

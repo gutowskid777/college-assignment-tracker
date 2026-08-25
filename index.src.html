@@ -899,6 +899,15 @@ function refreshTimeList(){
   settings().times.forEach(function(t){ dl.appendChild(el('option', {value:t})); });
 }
 
+// ---------- analytics (hosted demo only) ----------
+// Loads Vercel Web Analytics ONLY on the *.vercel.app deployment, so downloaded
+// copies, self-hosts, GitHub Pages, and the claude.ai artifact never phone home.
+if(/\.vercel\.app$/.test(location.hostname)){
+  var va = document.createElement('script');
+  va.defer = true; va.src = '/_vercel/insights/script.js';
+  document.body.appendChild(va);
+}
+
 // ---------- init ----------
 function init(){
   if(window.claude && window.claude.use){
