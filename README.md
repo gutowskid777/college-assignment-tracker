@@ -40,6 +40,11 @@ Three options, pick one:
 1. **Just open it.** Download `index.html` and double-click it. That is the whole install.
 2. **Use the hosted demo.** [gutowskid777.github.io/college-assignment-tracker](https://gutowskid777.github.io/college-assignment-tracker/) works as a real tracker since data stays in your browser.
 3. **Host it yourself.** It is one static file. Any static host or a `python3 -m http.server` works.
+4. **Sync it across devices with Claude.** If you use Claude, the tracker can run as a private artifact that saves its data into the page itself, so your phone and laptop see the same list with no server and no account beyond Claude. Download `index.html`, open a session at claude.ai/code, and say:
+
+   > Publish this HTML file as a private artifact with the artifact and downloads capabilities enabled.
+
+   The app detects that runtime automatically: every edit publishes a new version of the page, and any device signed into your Claude account sees the same data. Without it, the app quietly falls back to browser storage, so the same file works everywhere.
 
 ## Development
 
