@@ -1,0 +1,171 @@
+{
+ "version": 1,
+ "activeSemester": "fa26",
+ "semesters": [
+  {
+   "id": "fa26",
+   "name": "Fall 2026",
+   "archived": false,
+   "classes": [
+    {
+     "code": "ECON",
+     "name": "ECON 1110 Intro Microeconomics"
+    },
+    {
+     "code": "CS",
+     "name": "CS 2110 Object-Oriented Programming"
+    },
+    {
+     "code": "PSYCH",
+     "name": "PSYC 1101 Intro to Psychology"
+    },
+    {
+     "code": "ENGL",
+     "name": "ENGL 1183 Word and Image"
+    }
+   ],
+   "assignments": [
+    {
+     "id": "d01",
+     "name": "Problem Set 2",
+     "cls": "ECON",
+     "type": "Homework",
+     "due": "2026-08-21",
+     "time": "11:59 PM",
+     "status": "In Progress",
+     "star": true
+    },
+    {
+     "id": "d02",
+     "name": "Reading Response 1",
+     "cls": "ENGL",
+     "type": "Paper",
+     "due": "2026-08-24",
+     "time": "Before Class",
+     "status": "In Progress",
+     "star": false
+    },
+    {
+     "id": "d03",
+     "name": "Assignment 1: Linked Lists",
+     "cls": "CS",
+     "type": "Homework",
+     "due": "2026-08-25",
+     "time": "11:59 PM",
+     "status": "Not Started",
+     "star": true
+    },
+    {
+     "id": "d04",
+     "name": "Weekly Quiz 3",
+     "cls": "PSYCH",
+     "type": "Quiz",
+     "due": "2026-08-28",
+     "time": "2:00 PM",
+     "status": "Not Started",
+     "star": false
+    },
+    {
+     "id": "d05",
+     "name": "Prelim 1 (Ch 1-4)",
+     "cls": "ECON",
+     "type": "Prelim",
+     "due": "2026-09-17",
+     "time": "7:30 PM",
+     "status": "Not Started",
+     "star": true
+    },
+    {
+     "id": "d06",
+     "name": "Essay 1 Draft",
+     "cls": "ENGL",
+     "type": "Paper",
+     "due": "2026-09-02",
+     "time": "11:59 PM",
+     "status": "Not Started",
+     "star": false
+    },
+    {
+     "id": "d07",
+     "name": "Lab 2: Debugging",
+     "cls": "CS",
+     "type": "Task",
+     "due": "2026-08-27",
+     "time": "In Class",
+     "status": "Not Started",
+     "star": false
+    },
+    {
+     "id": "d08",
+     "name": "Research Participation 1",
+     "cls": "PSYCH",
+     "type": "Task",
+     "due": "2026-09-30",
+     "time": "",
+     "status": "Not Started",
+     "star": false
+    },
+    {
+     "id": "d09",
+     "name": "Exam 1 (in class)",
+     "cls": "PSYCH",
+     "type": "Prelim",
+     "due": "2026-09-22",
+     "time": "10:10 AM",
+     "status": "Not Started",
+     "star": true
+    },
+    {
+     "id": "d10",
+     "name": "Problem Set 1",
+     "cls": "ECON",
+     "type": "Homework",
+     "due": "2026-08-14",
+     "time": "11:59 PM",
+     "status": "Submitted",
+     "star": false
+    },
+    {
+     "id": "d11",
+     "name": "Course Survey",
+     "cls": null,
+     "type": "Task",
+     "due": "2026-08-19",
+     "time": "End of Day",
+     "status": "Submitted",
+     "star": false
+    },
+    {
+     "id": "d12",
+     "name": "Assignment 0: Setup",
+     "cls": "CS",
+     "type": "Homework",
+     "due": "2026-08-18",
+     "time": "11:59 PM",
+     "status": "Submitted",
+     "star": false
+    },
+    {
+     "id": "d13",
+     "name": "Weekly Quiz 2",
+     "cls": "PSYCH",
+     "type": "Quiz",
+     "due": "2026-08-21",
+     "time": "2:00 PM",
+     "status": "Submitted",
+     "star": false
+    },
+    {
+     "id": "d14",
+     "name": "Club Application",
+     "cls": null,
+     "type": "Task",
+     "due": "2026-09-05",
+     "time": "",
+     "status": "Not Started",
+     "star": false
+    }
+   ]
+  }
+ ]
+}
