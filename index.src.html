@@ -56,6 +56,8 @@ header.top{padding:22px 0 8px}
 .addbtn{background:var(--accent);color:var(--accent-ink);font-weight:600;padding:9px 16px;border-radius:12px;font-size:15px;white-space:nowrap}
 .group h2{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 2px 8px;font-weight:600}
 .group h2 b{font-weight:600}
+.group h2{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.group h2 .rng{font-weight:500;color:var(--muted);letter-spacing:.02em;font-variant-numeric:tabular-nums;text-transform:none;flex:none}
 .group h2.over{color:var(--over)} .group h2.today{color:var(--amber)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);width:100%;text-align:left}
@@ -106,13 +108,25 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:600px;
 .calhead button{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px}
 .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .calgrid .dow{text-align:center;font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:4px 0}
-.day{aspect-ratio:1/1.05;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:5px 4px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;font-variant-numeric:tabular-nums}
-.day.dim{opacity:.35}
-.day.today .dn{background:var(--amber);color:#fff;border-radius:99px;min-width:22px;text-align:center}
+.day{min-height:88px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 3px 4px;display:flex;flex-direction:column;align-items:stretch;gap:2px;font-size:13px;font-variant-numeric:tabular-nums;overflow:hidden;text-align:left}
+.day.dim{opacity:.4}
+.day.today .dn{background:var(--amber);color:#fff;border-radius:99px;min-width:21px;text-align:center}
 .day.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.day .dn{line-height:1.5;padding:0 3px}
-.day .dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
-.day .dots i{width:6px;height:6px;border-radius:99px;display:block}
+/* exam day: the whole cell glows */
+.day.examday{background:color-mix(in srgb, var(--amber) 12%, var(--card));border-color:color-mix(in srgb, var(--amber) 55%, transparent);box-shadow:0 0 14px color-mix(in srgb, var(--amber) 30%, transparent)}
+.day.examday.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), 0 0 14px color-mix(in srgb, var(--amber) 30%, transparent)}
+.day .dn{line-height:1.4;padding:0 3px;align-self:flex-start;font-weight:600}
+.day .ev{display:block;width:100%;font-size:10.5px;line-height:1.25;font-weight:600;padding:2px 4px;border-radius:5px;background:var(--card2);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:2.5px solid var(--muted)}
+.day .ev.big{background:color-mix(in srgb, var(--amber) 22%, transparent);color:var(--amber)}
+.day .ev.done{opacity:.5;text-decoration:line-through;text-decoration-thickness:1px}
+.day .more{font-size:10px;color:var(--muted);padding-left:4px;font-weight:600}
+.day .ev .evc{font-weight:600}
+@media (max-width:560px){
+  /* Phone cells are too narrow for a full title, so show the class code alone. */
+  .day{min-height:72px;padding:4px 2px}
+  .day .ev{font-size:9.5px;padding:1px 2px;border-left-width:2px;letter-spacing:-.01em}
+  .day .ev .evn{display:none}
+}
 .daylist{margin-top:12px}
 .daylist h3{font-size:14px;color:var(--muted);margin:0 2px 8px;font-weight:600}
 /* classes */
@@ -160,6 +174,7 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:600px;
 .note{background:var(--card2);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--muted);margin-top:14px}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;font-weight:600;z-index:60;display:none}
 .toast.on{display:block}
+body.syncing .wrap{opacity:.55;pointer-events:none;transition:opacity .2s}
 @media (min-width:700px){ .sheet{bottom:auto;top:8vh;border-radius:20px;border:1px solid var(--line)} }
 </style>
 
@@ -192,12 +207,22 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:600px;
 <div class="toast" id="toast"></div>
 
 <script type="application/json" id="db-state">__STATE__</script>
-<script type="text/plain" id="tpl">__TPL__</script>
 <script>
 (function(){
 'use strict';
 var STATE = JSON.parse(document.getElementById('db-state').textContent);
-var artifactNS = null, downloadsNS = null, storageMode = 'local';
+// Demo data carries an anchor date; slide every due date so the sample semester is
+// always "now" instead of going stale. Real data never has the field.
+if(STATE.demoAnchor){
+  var shiftDays = Math.round((new Date(new Date().toDateString()) - new Date(STATE.demoAnchor + 'T00:00:00')) / 864e5);
+  STATE.semesters.forEach(function(sm){ sm.assignments.forEach(function(a){
+    if(!a.due) return;
+    var d = new Date(a.due + 'T00:00:00'); d.setDate(d.getDate() + shiftDays);
+    a.due = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }); });
+  delete STATE.demoAnchor;
+}
+var dbNS = null, downloadsNS = null, storageMode = 'local';
 var LS_KEY = 'duebook-v1';
 
 // ---------- helpers ----------
@@ -287,42 +312,79 @@ function statClass(a){
 }
 
 // ---------- persistence ----------
-var saveTimer = null;
+// On claude.ai the list lives in the artifact's database (one document). A save is a
+// small write that never reloads the page, so edits can follow each other instantly.
+// Old builds republished the whole page per save, and every publish reloaded every
+// open view, which is what made each edit wait on the last one.
+var saveTimer = null, writing = false, dirtyAgain = false, ready = false;
+var stateDoc = null, pendingRemote = null;
 function setSaveState(t){ $('#saveState').textContent = t; }
+// Every edit stamps the state and mirrors it to this device synchronously, so a
+// closed tab or a dropped connection can never swallow an edit.
+function mirrorLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }catch(e){} }
 function markDirty(){
+  STATE.updatedAt = Date.now();
+  mirrorLocal();
   render();
   setSaveState('Saving...');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(persist, 1200);
-}
-// Rebuild the full document from the clean embedded template. Never serialize the live
-// DOM: the served page contains claude.ai's injected frame runtime, and baking that
-// snapshot into a publish is what corrupts the artifact.
-function buildDoc(){
-  var b64 = document.getElementById('tpl').textContent.trim();
-  var bytes = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
-  var src = new TextDecoder('utf-8').decode(bytes);
-  var json = JSON.stringify(STATE).replace(/<\//g, '<\\/');
-  var SP = '__ST' + 'ATE__', TP = '__T' + 'PL__';
-  return '<!doctype html>\n' + src
-    .replace(SP, function(){ return json; })
-    .replace(TP, function(){ return b64; });
+  saveTimer = setTimeout(persist, 300);
 }
 function persist(){
-  if(storageMode === 'artifact'){
-    var html;
-    try{ html = buildDoc(); }
-    catch(e){ setSaveState('Save failed'); try{ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }catch(_e){} return; }
-    artifactNS.publish(html).then(function(){
-      setSaveState('Saved');
-    }).catch(function(e){
-      if(e && e.code === 'conflict'){ setSaveState('Updated elsewhere'); }
-      else { setSaveState('Save failed'); try{ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }catch(_e){} }
-    });
-  } else {
-    try{ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); setSaveState('Saved on this device'); }
-    catch(e){ setSaveState('Save failed'); }
+  saveTimer = null;
+  if(storageMode !== 'db'){
+    mirrorLocal(); setSaveState('Saved on this device');
+    return;
   }
+  if(!ready) return; // the first snapshot decides what to write
+  // One write at a time per document. Edits made meanwhile coalesce into a single
+  // follow-up carrying the newest state.
+  if(writing){ dirtyAgain = true; return; }
+  writing = true;
+  var body = JSON.parse(JSON.stringify(STATE));
+  stateDoc.set({state: body}).then(function(){
+    writing = false;
+    if(dirtyAgain){ dirtyAgain = false; persist(); }
+    else setSaveState('Saved');
+  }).catch(function(e){
+    writing = false;
+    mirrorLocal();
+    if(dirtyAgain || (e && e.code === 'unavailable')){
+      dirtyAgain = false;
+      setTimeout(persist, 600 + Math.random() * 600);
+    } else {
+      setSaveState('Save failed');
+    }
+  });
+}
+function adoptRemote(remote){
+  STATE = remote; mirrorLocal(); render();
+}
+function onRemote(snap){
+  var remote = snap.exists && snap.data() && snap.data().state;
+  if(!ready){
+    ready = true;
+    document.body.classList.remove('syncing');
+    if(remote && (remote.updatedAt || 0) > (STATE.updatedAt || 0)){
+      adoptRemote(JSON.parse(JSON.stringify(remote))); setSaveState('');
+    } else {
+      // Empty database (first run) or this device holds an edit the server never got.
+      setSaveState('Saving...'); persist();
+    }
+    return;
+  }
+  if(!remote || snap.metadata.hasPendingWrites) return;
+  if((remote.updatedAt || 0) <= (STATE.updatedAt || 0)) return;
+  if(writing || dirtyAgain || saveTimer) return; // a local save is still on its way
+  // Another device saved. Hold it while an edit sheet is open so the form is not
+  // pulled out from under the person typing.
+  if($('#sheet').classList.contains('on')){ pendingRemote = remote; return; }
+  adoptRemote(JSON.parse(JSON.stringify(remote)));
+}
+function flushPendingRemote(){
+  if(!pendingRemote) return;
+  var r = pendingRemote; pendingRemote = null;
+  if((r.updatedAt || 0) > (STATE.updatedAt || 0)) adoptRemote(JSON.parse(JSON.stringify(r)));
 }
 
 // ---------- toast ----------
@@ -334,7 +396,7 @@ function toast(t){
 
 // ---------- rendering ----------
 var TAB = 'list';
-var FILTER_CLS = null, FILTER_STAR = false, SHOW_DONE = false;
+var FILTER_CLS = null, FILTER_STAR = false, FILTER_BIG = false, SHOW_DONE = false;
 var CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), sel: todayStr() };
 
 function render(){
@@ -398,16 +460,25 @@ function filterBar(){
     el('div', {'class':'filters'}, [
       el('button', {'class':'fchip', 'data-on': FILTER_STAR ? '1':'0', text:'★ Working on',
         onclick:function(){ FILTER_STAR = !FILTER_STAR; render(); }}),
+      el('button', {'class':'fchip', 'data-on': FILTER_BIG ? '1':'0', text:'Exams',
+        onclick:function(){ FILTER_BIG = !FILTER_BIG; render(); }}),
       FILTER_CLS ? el('button', {'class':'fchip', 'data-on':'1', text: FILTER_CLS + ' ×',
         onclick:function(){ FILTER_CLS = null; render(); }}) : null
     ]),
     el('button', {'class':'addbtn', text:'+ New', onclick:function(){ openEditor(null); }})
   ]);
 }
+// The Exams filter uses the same Glow types as the highlight, so editing Types in
+// Settings changes what counts as an exam here too.
+function isBigType(a){
+  var t = settings().types.find(function(x){ return x.name === a.type; });
+  return !!(t && t.big);
+}
 function filteredItems(){
   return sem().assignments.filter(function(a){
     if(FILTER_CLS && a.cls !== FILTER_CLS) return false;
     if(FILTER_STAR && !a.star) return false;
+    if(FILTER_BIG && !isBigType(a)) return false;
     return true;
   });
 }
@@ -464,6 +535,67 @@ function renderSheet(v){
   v.appendChild(el('div', {'class':'tblwrap'}, [el('table', {'class':'grid'}, [thead, tbody])]));
 }
 
+// Weeks run Monday 2 PM to the next Monday 2 PM, so Monday morning still reads as
+// the tail of the week you have been working, not the start of a fresh one.
+var WEEK_ROLL_HOUR = 14;
+function weekStart(d){
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes());
+  var dow = x.getDay();                       // 0 Sun .. 1 Mon
+  var back = (dow + 6) % 7;                   // days since Monday
+  var mon = new Date(x.getFullYear(), x.getMonth(), x.getDate() - back, WEEK_ROLL_HOUR, 0, 0, 0);
+  if(x < mon) mon.setDate(mon.getDate() - 7);  // before Monday 2 PM is still last week
+  return mon;
+}
+function shortDate(d){ return (d.getMonth()+1) + '/' + d.getDate(); }
+function buildGroups(open){
+  var now = new Date();
+  var w0 = weekStart(now);
+  function bucketIndex(a){
+    // A dated item belongs to the week its due date falls in, by the same Monday rule.
+    var due = parseDate(a.due);
+    if(!due) return null;
+    due.setHours(WEEK_ROLL_HOUR + 1, 0, 0, 0);   // treat a due date as inside that day's week
+    return Math.round((weekStart(due) - w0) / 604800000);
+  }
+  var today = todayStr();
+  var out = [
+    {key:'over',  label:'Overdue', cls:'over',  rows: []},
+    {key:'today', label:'Today',   cls:'today', rows: []}
+  ];
+  var weeks = {};
+  open.forEach(function(a){
+    if(!a.due){ return; }
+    if(daysDiff(a.due) < 0){ out[0].rows.push(a); return; }
+    if(a.due === today){ out[1].rows.push(a); return; }
+    var wi = bucketIndex(a);
+    if(wi === null) return;
+    if(wi < 0) wi = 0;
+    (weeks[wi] = weeks[wi] || []).push(a);
+  });
+  // Name the next few weeks, then stop. Past a month out a weekly header per week is
+  // noise, so everything beyond collapses into one Later bucket.
+  var names = ['This Week', 'Next Week', 'In 2 Weeks', 'In 3 Weeks'];
+  var later = [];
+  Object.keys(weeks).map(Number).sort(function(x,y){ return x - y; }).forEach(function(wi){
+    if(wi >= names.length){ later = later.concat(weeks[wi]); return; }
+    var start = new Date(w0); start.setDate(start.getDate() + wi * 7);
+    var end = new Date(start); end.setDate(end.getDate() + 6);
+    out.push({
+      key: 'w' + wi,
+      label: names[wi],
+      cls: '',
+      range: shortDate(start) + ' - ' + shortDate(end),
+      rows: weeks[wi]
+    });
+  });
+  if(later.length){
+    later.sort(function(x,y){ return x.due < y.due ? -1 : x.due > y.due ? 1 : 0; });
+    var lStart = new Date(w0); lStart.setDate(lStart.getDate() + names.length * 7);
+    out.push({key:'later', label:'Later', cls:'', range: shortDate(lStart) + ' onward', rows: later});
+  }
+  out.push({key:'nodate', label:'No Due Date', cls:'', rows: open.filter(function(a){ return !a.due; })});
+  return out;
+}
 function renderList(v){
   var s = sem();
   v.appendChild(filterBar());
@@ -485,19 +617,12 @@ function renderList(v){
     return;
   }
 
-  var groups = [
-    {key:'over',  label:'Overdue',    cls:'over',  test:function(d){ return d < 0; }},
-    {key:'today', label:'Today',      cls:'today', test:function(d){ return d === 0; }},
-    {key:'tmrw',  label:'Tomorrow',   cls:'',      test:function(d){ return d === 1; }},
-    {key:'week',  label:'This Week',  cls:'',      test:function(d){ return d >= 2 && d <= 7; }},
-    {key:'later', label:'Later',      cls:'',      test:function(d){ return d > 7; }},
-    {key:'nodate',label:'No Due Date',cls:'',      test:function(d){ return d === null; }}
-  ];
+  var groups = buildGroups(open);
   groups.forEach(function(g){
-    var rows = open.filter(function(a){ return g.test(a.due ? daysDiff(a.due) : null); });
-    if(!rows.length) return;
-    var h = el('h2', {'class':g.cls, html: g.label + ' <b>' + rows.length + '</b>'});
-    var grp = el('div', {'class':'group'}, [h, el('div', {'class':'card'}, rows.map(itemRow))]);
+    if(!g.rows.length) return;
+    var h = el('h2', {'class':g.cls, html: '<span>' + g.label + ' <b>' + g.rows.length + '</b></span>' +
+      (g.range ? '<span class="rng">' + g.range + '</span>' : '')});
+    var grp = el('div', {'class':'group'}, [h, el('div', {'class':'card'}, g.rows.map(itemRow))]);
     v.appendChild(grp);
   });
 
@@ -517,6 +642,7 @@ function renderList(v){
 
 function renderCal(v){
   var s = sem();
+  v.appendChild(filterBar());
   var head = el('div', {'class':'calhead'}, [
     el('button', {text:'‹', 'aria-label':'Previous month', onclick:function(){ CAL.m--; if(CAL.m<0){CAL.m=11;CAL.y--;} render(); }}),
     el('div', {'class':'mo', text: new Date(CAL.y, CAL.m, 1).toLocaleString('en-US',{month:'long', year:'numeric'})}),
@@ -525,27 +651,37 @@ function renderCal(v){
   v.appendChild(head);
 
   var byDay = {};
-  s.assignments.forEach(function(a){ if(a.due){ (byDay[a.due] = byDay[a.due] || []).push(a); } });
+  filteredItems().forEach(function(a){ if(a.due){ (byDay[a.due] = byDay[a.due] || []).push(a); } });
 
   var grid = el('div', {'class':'calgrid'});
   ['S','M','T','W','T','F','S'].forEach(function(d){ grid.appendChild(el('div', {'class':'dow', text:d})); });
   var first = new Date(CAL.y, CAL.m, 1);
   var start = new Date(CAL.y, CAL.m, 1 - first.getDay());
   var today = todayStr();
+  var MAX_EV = 3;
   for(var i=0;i<42;i++){
     var d = new Date(start); d.setDate(start.getDate()+i);
     var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     var inMo = d.getMonth() === CAL.m;
-    var cell = el('button', {'class':'day' + (inMo?'':' dim') + (ds===today?' today':'') + (ds===CAL.sel?' sel':''),
+    var das = byDay[ds] || [];
+    var hasBig = das.some(isBig);
+    var cell = el('button', {'class':'day' + (inMo?'':' dim') + (ds===today?' today':'') +
+        (ds===CAL.sel?' sel':'') + (hasBig?' examday':''),
       onclick:(function(ds){ return function(){ CAL.sel = ds; render(); }; })(ds)}, [
       el('span', {'class':'dn', text: String(d.getDate())})
     ]);
-    var das = byDay[ds] || [];
-    if(das.length){
-      cell.appendChild(el('span', {'class':'dots'}, das.slice(0,4).map(function(a){
-        return el('i', {style:'background:' + (isDone(a) ? 'var(--done)' : (a.cls ? clsColor(a.cls) : 'var(--muted)'))});
-      })));
-    }
+    // Heaviest items first so an exam is never the row that gets truncated away.
+    das.slice().sort(function(x,y){ return (isBig(y)?1:0) - (isBig(x)?1:0); })
+      .slice(0, MAX_EV).forEach(function(a){
+        var ev = el('span', {'class':'ev' + (isBig(a)?' big':'') + (isDone(a)?' done':''),
+          title: (a.cls ? a.cls + ' · ' : '') + a.name,
+          style: 'border-left-color:' + (a.cls ? clsColor(a.cls) : 'var(--muted)')});
+        // Class code stays visible at every width; the name drops off on phones.
+        ev.appendChild(el('span', {'class':'evc', text: a.cls || a.name}));
+        if(a.cls) ev.appendChild(el('span', {'class':'evn', text: ' ' + a.name}));
+        cell.appendChild(ev);
+      });
+    if(das.length > MAX_EV) cell.appendChild(el('span', {'class':'more', text:'+' + (das.length - MAX_EV) + ' more'}));
     grid.appendChild(cell);
   }
   v.appendChild(grid);
@@ -595,7 +731,7 @@ function openSheet(build){
   build(sh);
   sh.classList.add('on'); $('#scrim').classList.add('on');
 }
-function closeSheet(){ $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); }
+function closeSheet(){ $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); flushPendingRemote(); }
 $('#scrim').addEventListener('click', closeSheet);
 
 function fld(label, input){ return el('div', {'class':'f'}, [el('label', {text:label}), input]); }
@@ -770,8 +906,8 @@ function openSettings(){
     ]));
 
     sh.appendChild(el('div', {'class':'note', text:
-      storageMode === 'artifact'
-        ? 'Data saves into this page on claude.ai, so every device signed into your account sees the same list. Export a JSON backup once in a while.'
+      storageMode === 'db'
+        ? 'Data saves to this tracker on claude.ai, so every device signed into your account sees the same list. Export a JSON backup once in a while.'
         : 'Data saves in this browser only (localStorage). Export a JSON backup once in a while.'
     }));
   });
@@ -911,20 +1047,37 @@ if(/\.vercel\.app$/.test(location.hostname)){
 // ---------- init ----------
 function init(){
   if(window.claude && window.claude.use){
-    Promise.all([claude.use('artifact'), claude.use('downloads')]).then(function(ns){
-      artifactNS = ns[0]; downloadsNS = ns[1];
-      if(artifactNS){ storageMode = 'artifact'; setSaveState(''); }
-      else fallbackLocal();
+    document.body.classList.add('syncing');
+    Promise.all([claude.use('db'), claude.use('downloads')]).then(function(ns){
+      dbNS = ns[0]; downloadsNS = ns[1];
+      if(dbNS){
+        storageMode = 'db'; setSaveState('Syncing...');
+        adoptNewerLocal();
+        stateDoc = dbNS.doc('tracker/state');
+        stateDoc.onSnapshot(onRemote, function(){
+          // Subscription died: keep working on this device, saves still go out.
+          if(!ready){ ready = true; document.body.classList.remove('syncing'); persist(); }
+        });
+      }
+      else { document.body.classList.remove('syncing'); fallbackLocal(); }
       render();
-    }).catch(function(){ fallbackLocal(); render(); });
+    }).catch(function(){ document.body.classList.remove('syncing'); fallbackLocal(); render(); });
   } else { fallbackLocal(); render(); }
+}
+// Take the device copy only when it is strictly newer than what the page shipped with.
+function adoptNewerLocal(){
+  try{
+    var saved = localStorage.getItem(LS_KEY);
+    if(!saved) return false;
+    var d = JSON.parse(saved);
+    if(!d || !Array.isArray(d.semesters)) return false;
+    if((d.updatedAt || 0) > (STATE.updatedAt || 0)){ STATE = d; return true; }
+  } catch(e){}
+  return false;
 }
 function fallbackLocal(){
   storageMode = 'local';
-  try{
-    var saved = localStorage.getItem(LS_KEY);
-    if(saved){ var d = JSON.parse(saved); if(d && d.semesters) STATE = d; }
-  } catch(e){}
+  adoptNewerLocal();
 }
 render();
 init();

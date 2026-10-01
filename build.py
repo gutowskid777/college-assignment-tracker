@@ -3,30 +3,36 @@
 
 Usage:
   python3 build.py state.json            # state from a JSON file
-  python3 build.py artifact-dump.html    # or pull state out of a saved artifact HTML
+  python3 build.py db-dump.json          # or a tracker/state dump from the artifact database ({"state": ...})
+  python3 build.py artifact-dump.html    # or pull state out of an old saved artifact HTML
 
-The template embeds ITSELF base64-encoded (the #tpl tag) so the published page can
-rebuild a clean document when it saves, instead of snapshotting the live DOM
-(which would bake in claude.ai's injected frame runtime and corrupt the artifact).
+On claude.ai the live data is in the artifact database (doc tracker/state), not the
+page. The embedded state is only the first paint; the page adopts the database copy
+on load. Read the database before rebuilding so the embedded copy is current.
 """
-import base64, json, re, sys, pathlib
+import json, re, sys, time, pathlib
 
 here = pathlib.Path(__file__).parent
 src = (here / 'index.src.html').read_text()
 
 arg = sys.argv[1] if len(sys.argv) > 1 else None
 if not arg:
-    sys.exit('usage: build.py <state.json | saved-artifact.html>')
+    sys.exit('usage: build.py <state.json | db-dump.json | saved-artifact.html>')
 raw = pathlib.Path(arg).read_text()
 if arg.endswith('.html'):
     m = re.search(r'<script type="application/json" id="db-state">(.*?)</script>', raw, re.S)
     state = json.loads(m.group(1))
 else:
     state = json.loads(raw)
+    if 'state' in state and 'semesters' not in state:
+        state = state['state']
 
+# Stamp the build so a stale device copy never outranks a freshly published one.
+# Demo data (demoAnchor set) is left unstamped so any visitor's own edits win.
+if 'demoAnchor' not in state:
+    state['updatedAt'] = int(time.time() * 1000)
 state_str = json.dumps(state, separators=(',', ':')).replace('</', '<\\/')
-tpl_b64 = base64.b64encode(src.encode('utf-8')).decode('ascii')
-out = src.replace('__STATE__', state_str).replace('__TPL__', tpl_b64)
+out = src.replace('__STATE__', state_str)
 (here / 'index.html').write_text(out)
 print(f'index.html built: {len(out)} bytes, '
       f'{sum(len(s["assignments"]) for s in state["semesters"])} assignments, '
